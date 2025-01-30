@@ -47,14 +47,14 @@ func (c *Client) GetAllChannelList(ctx context.Context) ([]iptv.Channel, error) 
 
 	// 创建请求
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost,
-		fmt.Sprintf("http://%s/EPG/jsp/getchannellistHWCTC.jsp", c.host), strings.NewReader(body.Encode()))
+		fmt.Sprintf("http://%s/EPG/jsp/getchannellistHWCU.jsp", c.host), strings.NewReader(body.Encode()))
 	if err != nil {
 		return nil, err
 	}
 
 	// 设置请求头
 	c.setCommonHeaders(req)
-	req.Header.Set("Referer", fmt.Sprintf("http://%s/EPG/jsp/ValidAuthenticationHWCTC.jsp", c.host))
+	req.Header.Set("Referer", fmt.Sprintf("http://%s/EPG/jsp/ValidAuthenticationHWCU.jsp", c.host))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	// 设置Cookie
@@ -79,7 +79,7 @@ func (c *Client) GetAllChannelList(ctx context.Context) ([]iptv.Channel, error) 
 	if err != nil {
 		return nil, err
 	}
-	chRegex := regexp.MustCompile("ChannelID=\"(.+?)\",ChannelName=\"(.+?)\",UserChannelID=\"(.+?)\",ChannelURL=\"(.+?)\",TimeShift=\"(.+?)\",TimeShiftLength=\"(\\d+?)\".+?,TimeShiftURL=\"(.+?)\"")
+	chRegex := regexp.MustCompile("ChannelID=\"(.+?)\",ChannelName=\"(.+?)\",UserChannelID=\"(.+?)\",ChannelURL=\"(.+?)\",TimeShift=\"(.+?)\",TimeShiftLength=\"(\\d+?)\".+?,ChannelSDP=\"(.+?)\",TimeShiftURL=\"(.+?)\"")
 	matchesList := chRegex.FindAllSubmatch(result, -1)
 	if matchesList == nil {
 		return nil, fmt.Errorf("failed to extract channel list")
@@ -124,7 +124,7 @@ func (c *Client) GetAllChannelList(ctx context.Context) ([]iptv.Channel, error) 
 		}
 
 		// 解析时移地址
-		timeShiftURL, err := url.Parse(string(matches[7]))
+		timeShiftURL, err := url.Parse(string(matches[8]))
 		if err != nil {
 			c.logger.Warn("The timeShiftURL of this channel is illegal. Use the default value: nil.", zap.String("channelName", channelName), zap.String("timeShiftURL", string(matches[7])))
 		}
