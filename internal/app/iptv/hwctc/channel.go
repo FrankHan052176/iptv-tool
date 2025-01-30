@@ -69,6 +69,7 @@ func (c *Client) GetAllChannelList(ctx context.Context) ([]iptv.Channel, error) 
 
 	// 解析响应内容
 	result, err := io.ReadAll(resp.Body)
+	c.logger.Info(string(result))
 	if err != nil {
 		return nil, err
 	}

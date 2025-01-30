@@ -113,15 +113,18 @@ func (c *Client) authLoginHWCTC(ctx context.Context, referer string) (string, er
 
 	// 解析响应内容
 	result, err := io.ReadAll(resp.Body)
+	c.logger.Info(string(result))
 	if err != nil {
 		return "", err
 	}
 	regex := regexp.MustCompile("EncryptToken = \"(.+?)\";")
 	matches := regex.FindSubmatch(result)
+	c.logger.Info(string(matches[0]))
+	c.logger.Info(string(matches[1]))
 	if len(matches) != 2 {
 		return "", errors.New("failed to parse EncryptToken")
 	}
-	return string(matches[1]), nil
+	return string(matches[0]), nil
 }
 
 // validAuthenticationHWCTC 认证第三步，获取UserToken和cookie中的JSESSIONID
@@ -144,7 +147,7 @@ func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken stri
 	}
 
 	// 输入的格式：random + "$" + EncryptToken + "$" + UserID + "$" + STBID + "$" + IP + "$" + MAC + "$" + Reserved + "$" + CTC
-	input := fmt.Sprintf("%d$%s$%s$%s$%s$%s$$CTC",
+	input := fmt.Sprintf("%d$%s$%s$%s$%s$%s$$CU",
 		random, encryptToken, c.config.UserID, c.config.STBID, ipv4Addr, c.config.MAC)
 	// 使用3DES加密生成Authenticator
 	crypto := iptv.NewTripleDESCrypto(c.key)
@@ -217,6 +220,10 @@ func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken stri
 			jsessionID = cookie.Value
 			break
 		}
+	}
+
+	if jsessionID == "" {
+		return nil, errors.New("failed to find JSESSIONID in response")
 	}
 
 	// 解析响应内容
