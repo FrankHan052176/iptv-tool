@@ -152,6 +152,7 @@ func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken stri
 	// 使用3DES加密生成Authenticator
 	crypto := iptv.NewTripleDESCrypto(c.key)
 	authenticator, err := crypto.ECBEncrypt(input)
+	logger.Info(authenticator)
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +160,7 @@ func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken stri
 	// 组装请求数据
 	data := map[string]string{
 		"UserID":           c.config.UserID,
-		"Lang":             c.config.Lang,
+		"Lang":             "0",
 		"SupportHD":        "1",
 		"NetUserID":        c.config.NetUserID,
 		"Authenticator":    strings.ToUpper(authenticator),
@@ -167,19 +168,13 @@ func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken stri
 		"STBVersion":       c.config.STBVersion,
 		"conntype":         c.config.Conntype,
 		"STBID":            c.config.STBID,
-		"templateName":     c.config.TemplateName,
+		"templateName":     "default",
 		"areaId":           c.config.AreaId,
 		"userToken":        encryptToken,
-		"userGroupId":      c.config.UserGroupId,
-		"productPackageId": c.config.ProductPackageId,
+		"userGroupId":      "",
+		"productPackageId": "",
 		"mac":              c.config.MAC,
-		"UserField":        c.config.UserField,
 		"SoftwareVersion":  c.config.SoftwareVersion,
-		"IsSmartStb":       c.config.IsSmartStb,
-		"desktopId":        "",
-		"stbmaker":         "",
-		"XMPPCapability":   "",
-		"ChipID":           "",
 		"VIP":              c.config.Vip,
 	}
 	body := url.Values{}
