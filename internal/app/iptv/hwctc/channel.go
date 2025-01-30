@@ -2,8 +2,6 @@ package hwctc
 
 import (
 	"context"
-	"crypto/md5"
-	"encoding/hex"
 	"fmt"
 	"io"
 	"iptv/internal/app/iptv"
@@ -25,20 +23,15 @@ func (c *Client) GetAllChannelList(ctx context.Context) ([]iptv.Channel, error) 
 		return nil, err
 	}
 
-	// 计算JSESSIONID的MD5
-	hash := md5.Sum([]byte(token.JSESSIONID))
-	// 转换为16进制字符串并转换为大写，即为tempKey
-	tempKey := strings.ToUpper(hex.EncodeToString(hash[:]))
-
 	// 组装请求数据
 	data := map[string]string{
 		"conntype":  c.config.Conntype,
 		"UserToken": token.UserToken,
-		"tempKey":   tempKey,
+		"tempKey":   "",
 		"stbid":     token.Stbid,
 		"SupportHD": "1",
 		"UserID":    c.config.UserID,
-		"Lang":      c.config.Lang,
+		"Lang":      "1",
 	}
 	body := url.Values{}
 	for k, v := range data {

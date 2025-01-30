@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	"io"
 	"iptv/internal/app/iptv"
 	"math/rand"
@@ -25,7 +26,7 @@ type Token struct {
 // requestToken 请求认证的Token
 func (c *Client) requestToken(ctx context.Context) (*Token, error) {
 	// 访问登录页面
-	referer, err := c.authenticationURL(ctx, true)
+	referer, err := c.authenticationURL(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +42,7 @@ func (c *Client) requestToken(ctx context.Context) (*Token, error) {
 }
 
 // authenticationURL 认证第一步
-func (c *Client) authenticationURL(ctx context.Context, FCCSupport bool) (string, error) {
+func (c *Client) authenticationURL(ctx context.Context) (string, error) {
 	// 创建请求
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet,
 		fmt.Sprintf("http://%s/EDS/jsp/AuthenticationURL", c.originHost), nil)
@@ -53,9 +54,6 @@ func (c *Client) authenticationURL(ctx context.Context, FCCSupport bool) (string
 	params := req.URL.Query()
 	params.Add("UserID", c.config.UserID)
 	params.Add("Action", "Login")
-	if FCCSupport {
-		params.Add("FCCSupport", "1")
-	}
 	req.URL.RawQuery = params.Encode()
 
 	// 设置请求头
@@ -83,7 +81,7 @@ func (c *Client) authLoginHWCTC(ctx context.Context, referer string) (string, er
 	// 组装请求数据
 	data := map[string]string{
 		"UserID": c.config.UserID,
-		"VIP":    c.config.Vip,
+		"VIP":    "",
 	}
 	body := url.Values{}
 	for k, v := range data {
@@ -128,6 +126,7 @@ func (c *Client) authLoginHWCTC(ctx context.Context, referer string) (string, er
 
 // validAuthenticationHWCTC 认证第三步，获取UserToken和cookie中的JSESSIONID
 func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken string) (*Token, error) {
+	logger := zap.L()
 	// 生成随机的8位数字
 	random := c.generate8DigitNumber()
 
@@ -210,15 +209,14 @@ func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken stri
 	}
 
 	// 从Cookie中获取JSESSIONID
+	logger.Info("Cookies")
 	var jsessionID string
 	for _, cookie := range resp.Cookies() {
+		logger.Info(cookie.Raw)
 		if cookie.Name == "JSESSIONID" {
 			jsessionID = cookie.Value
 			break
 		}
-	}
-	if jsessionID == "" {
-		return nil, errors.New("failed to find JSESSIONID in response")
 	}
 
 	// 解析响应内容
