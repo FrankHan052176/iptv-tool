@@ -78,8 +78,9 @@ func (c *Client) GetAllChannelList(ctx context.Context) ([]iptv.Channel, error) 
 	if err != nil {
 		return nil, err
 	}
-	chRegex := regexp.MustCompile("ChannelID=\"(.+?)\",ChannelName=\"(.+?)\",UserChannelID=\"(.+?)\",ChannelURL=\"(.+?)\",TimeShift=\"(.+?)\",TimeShiftLength=\"(\\d+?)\".+?,ChannelSDP=\"(.+?)\",TimeShiftURL=\"(.+?)\"")
+	chRegex := regexp.MustCompile("ChannelID=\"(.+?)\",ChannelName=\"(.+?)\",UserChannelID=\"(.+?)\",ChannelURL=\"(.+?)\",TimeShift=\"(.+?)\",TimeShiftLength=\"(\\d+?)\".+?,TimeShiftURL=\"(.+?)\"")
 	matchesList := chRegex.FindAllSubmatch(result, -1)
+	c.logger.Info("matchesList cnt: " + strconv.Itoa(len(matchesList)))
 	if matchesList == nil {
 		return nil, fmt.Errorf("failed to extract channel list")
 	}

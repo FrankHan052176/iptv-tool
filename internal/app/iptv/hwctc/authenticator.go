@@ -248,15 +248,10 @@ func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken stri
 	if err != nil {
 		return nil, err
 	}
-	c.logger.Info(string(result))
 
 	// 匹配UserToken
 	regex := regexp.MustCompile(`"UserToken" value="(.+?)"`)
 	matches := regex.FindSubmatch(result)
-	c.logger.Info(fmt.Sprintf("matches: %d", len(matches)))
-	for i := range matches {
-		c.logger.Info("matches " + strconv.Itoa(i) + ": " + string(matches[i]))
-	}
 	if len(matches) != 2 {
 		return nil, errors.New("failed to parse userToken")
 	}
