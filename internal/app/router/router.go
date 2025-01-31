@@ -63,12 +63,6 @@ func NewEngine(ctx context.Context, conf *config.Config, interval time.Duration,
 	// 查询直播源-txt格式
 	r.GET("/channel/txt", GetTXTData)
 
-	// 查询EPG-json格式
-	r.GET("/epg/json", GetJsonEPG)
-	// 查询EPG-xml格式
-	r.GET("/epg/xml", GetXmlEPG)
-	r.GET("/epg/xml.gz", GetXmlEPGWithGzip)
-
 	// 查询频道logo
 	r.Static("/logo", path.Join(currDir, "logos"))
 
