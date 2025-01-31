@@ -204,7 +204,7 @@ func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken stri
 
 	// 从Cookie中获取JSESSIONID
 	result, err := io.ReadAll(resp.Body)
-	c.logger.Info(string(result))
+	c.logger.Info(resp.Header.Get("Set-Cookie"))
 	var jsessionID string
 	for _, cookie := range resp.Cookies() {
 		c.logger.Info(cookie.Raw)
