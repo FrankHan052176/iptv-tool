@@ -131,10 +131,10 @@ func (c *Client) authLoginHWCTC(ctx context.Context, referer string) (string, er
 	for i := range matches {
 		c.logger.Info("EncryptToken " + strconv.Itoa(i) + ": " + string(matches[i]))
 	}
-	if len(matches) != 1 {
+	if len(matches) != 2 {
 		return "", errors.New("failed to parse EncryptToken")
 	}
-	return string(matches[0]), nil
+	return string(matches[1]), nil
 }
 
 // validAuthenticationHWCTC 认证第三步，获取UserToken和cookie中的JSESSIONID
@@ -239,8 +239,8 @@ func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken stri
 	regex := regexp.MustCompile("(?s)<input type=\"hidden\" name=\"UserToken\" value=\"(.*?)\".*<input type=\"hidden\" name=\"tempKey\" value=\"(.*?)\".*<input type=\"hidden\" name=\"stbid\" value=\"(.*?)\">")
 	matches := regex.FindSubmatch(result)
 	c.logger.Info(fmt.Sprintf("matches: %d", len(matches)))
-	for match := range matches {
-		c.logger.Info(string(matches[match]))
+	for i := range matches {
+		c.logger.Info("matches " + strconv.Itoa(i) + ": " + string(matches[i]))
 	}
 	if len(matches) != 3 {
 		return nil, errors.New("failed to parse userToken")
