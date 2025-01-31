@@ -100,21 +100,7 @@ func (c *Client) GetAllChannelList(ctx context.Context) ([]iptv.Channel, error) 
 
 		// channelURL类型转换
 		// channelURL可能同时返回组播和单播多个地址（通过|分割）
-		channelURLStrList := strings.Split(string(matches[4]), "|")
-		channelURLs := make([]url.URL, 0, len(channelURLStrList))
-		for _, channelURLStr := range channelURLStrList {
-			channelURL, err := url.Parse(channelURLStr)
-			if err != nil {
-				continue
-			}
-
-			channelURLs = append(channelURLs, *channelURL)
-		}
-
-		if len(channelURLs) == 0 {
-			c.logger.Warn("The channelURL of this channel is illegal, skip it.", zap.String("channelName", channelName), zap.String("channelURL", string(matches[4])))
-			continue
-		}
+		channelURL := string(matches[4])
 
 		// TimeShiftLength类型转换
 		timeShiftLength, err := strconv.ParseInt(string(matches[6]), 10, 64)
@@ -124,14 +110,7 @@ func (c *Client) GetAllChannelList(ctx context.Context) ([]iptv.Channel, error) 
 		}
 
 		// 解析时移地址
-		timeShiftURL, err := url.Parse(string(matches[7]))
-		if err != nil {
-			c.logger.Warn("The timeShiftURL of this channel is illegal. Use the default value: nil.", zap.String("channelName", channelName), zap.String("timeShiftURL", string(matches[7])))
-		}
-		if timeShiftURL != nil {
-			// 重置时移地址的查询参数
-			timeShiftURL.RawQuery = ""
-		}
+		timeShiftURL := string(matches[7])
 
 		// 自动识别频道的分类
 		groupName := iptv.GetChannelGroupName(c.chGroupRulesList, channelName)
@@ -143,7 +122,7 @@ func (c *Client) GetAllChannelList(ctx context.Context) ([]iptv.Channel, error) 
 			ChannelID:       string(matches[1]),
 			ChannelName:     channelName,
 			UserChannelID:   string(matches[3]),
-			ChannelURLs:     channelURLs,
+			ChannelURL:      channelURL,
 			TimeShift:       string(matches[5]),
 			TimeShiftLength: time.Duration(timeShiftLength) * time.Minute,
 			TimeShiftURL:    timeShiftURL,

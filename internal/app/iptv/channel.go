@@ -18,10 +18,10 @@ type Channel struct {
 	ChannelID       string        `json:"channelID"`       // 频道ID
 	ChannelName     string        `json:"channelName"`     // 频道名称
 	UserChannelID   string        `json:"userChannelID"`   // 频道号
-	ChannelURLs     []url.URL     `json:"channelURLs"`     // 频道URL列表
+	ChannelURL      string        `json:"channelURL"`      // 频道URL
 	TimeShift       string        `json:"timeShift"`       // 时移类型
 	TimeShiftLength time.Duration `json:"timeShiftLength"` // 支持的时移长度
-	TimeShiftURL    *url.URL      `json:"timeShiftURL"`    // 时移地址（回放地址）
+	TimeShiftURL    string        `json:"timeShiftURL"`    // 时移地址（回放地址）
 
 	GroupName string `json:"groupName"` // 程序识别的频道分类
 	LogoName  string `json:"logoName"`  // 频道台标名称
@@ -42,7 +42,7 @@ func ToM3UFormat(channels []Channel, udpxyURL, catchupSource string, multicastFi
 	sb.WriteString("#EXTM3U\n")
 	for _, channel := range channels {
 		// 根据指定条件，获取频道URL地址
-		channelURLStr, err := getChannelURLStr(channel.ChannelURLs, udpxyURL, multicastFirst)
+		channelURLStr, err := getChannelURLStr(channel, udpxyURL, multicastFirst)
 		if err != nil {
 			return "", err
 		}
@@ -63,9 +63,9 @@ func ToM3UFormat(channels []Channel, udpxyURL, catchupSource string, multicastFi
 			}
 		}
 		// 设置频道回看参数
-		if channel.TimeShift == "1" && channel.TimeShiftLength > 0 && channel.TimeShiftURL != nil {
+		if channel.TimeShift == "1" && channel.TimeShiftLength > 0 && multicastFirst {
 			m3uLineSb.WriteString(fmt.Sprintf(" catchup=\"%s\" catchup-source=\"%s\" catchup-days=\"%d\"",
-				"default", channel.TimeShiftURL.String()+catchupSource, int64(channel.TimeShiftLength.Hours()/24)))
+				"default", channel.TimeShiftURL+catchupSource, int64(channel.TimeShiftLength.Hours()/24)))
 		}
 		// 设置频道分组和名称
 		m3uLineSb.WriteString(fmt.Sprintf(" group-title=\"%s\",%s\n%s\n",
@@ -108,7 +108,7 @@ func ToTxtFormat(channels []Channel, udpxyURL string, multicastFirst bool) (stri
 		// 输出频道信息
 		for _, channel := range groupChannels {
 			// 根据指定条件，获取频道URL地址
-			channelURLStr, err := getChannelURLStr(channel.ChannelURLs, udpxyURL, multicastFirst)
+			channelURLStr, err := getChannelURLStr(channel, udpxyURL, multicastFirst)
 			if err != nil {
 				return "", err
 			}
@@ -122,26 +122,14 @@ func ToTxtFormat(channels []Channel, udpxyURL string, multicastFirst bool) (stri
 }
 
 // getChannelURLStr 根据指定条件，获取频道URL地址
-func getChannelURLStr(channelURLs []url.URL, udpxyURL string, multicastFirst bool) (string, error) {
-	if len(channelURLs) == 0 {
+func getChannelURLStr(channel Channel, udpxyURL string, multicastFirst bool) (string, error) {
+	if len(channel.ChannelURL) == 0 {
 		return "", errors.New("no channel urls found")
 	}
 
-	var channelURL url.URL
-	if len(channelURLs) == 1 {
-		channelURL = channelURLs[0]
+	if multicastFirst {
+		return udpxyURL + channel.ChannelURL, nil
 	} else {
-		for _, channelURL = range channelURLs {
-			if (multicastFirst && channelURL.Scheme == SCHEME_IGMP) ||
-				(!multicastFirst && channelURL.Scheme != SCHEME_IGMP) {
-				break
-			}
-		}
-	}
-
-	if udpxyURL != "" && channelURL.Scheme == SCHEME_IGMP {
-		return url.JoinPath(udpxyURL, fmt.Sprintf("/rtp/%s", channelURL.Host))
-	} else {
-		return channelURL.String(), nil
+		return channel.TimeShiftURL, nil
 	}
 }
