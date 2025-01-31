@@ -2,7 +2,6 @@ package hwctc
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -122,14 +121,11 @@ func (c *Client) authLoginHWCTC(ctx context.Context, referer string) (string, er
 
 	// 解析响应内容
 	result, err := io.ReadAll(resp.Body)
-	c.logger.Info(string(result))
 	if err != nil {
 		return "", err
 	}
 	regex := regexp.MustCompile("EncryptToken = \"(.+?)\";")
 	matches := regex.FindSubmatch(result)
-	c.logger.Info(string(matches[0]))
-	c.logger.Info(string(matches[1]))
 	if len(matches) != 2 {
 		return "", errors.New("failed to parse EncryptToken")
 	}
@@ -182,8 +178,6 @@ func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken stri
 		"SoftwareVersion":  c.config.SoftwareVersion,
 		"VIP":              c.config.Vip,
 	}
-	dataType, _ := json.Marshal(data)
-	c.logger.Info(string(dataType))
 	body := url.Values{}
 	for k, v := range data {
 		body.Add(k, v)
@@ -221,10 +215,9 @@ func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken stri
 
 	// 从Cookie中获取JSESSIONID
 	result, err := io.ReadAll(resp.Body)
-	c.logger.Info(resp.Header.Get("Set-Cookie"))
+	c.logger.Info(string(result))
 	var jsessionID string
 	for _, cookie := range resp.Cookies() {
-		c.logger.Info(cookie.Raw)
 		if cookie.Name == "JSESSIONID" {
 			jsessionID = cookie.Value
 			break
