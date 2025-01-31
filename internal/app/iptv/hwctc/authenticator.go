@@ -236,19 +236,19 @@ func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken stri
 	if err != nil {
 		return nil, err
 	}
-	regex := regexp.MustCompile("(?s)<input type=\"hidden\" name=\"UserToken\" value=\"(.*?)\".*<input type=\"hidden\" name=\"tempKey\" value=\"(.*?)\".*<input type=\"hidden\" name=\"stbid\" value=\"(.*?)\">")
+	regex := regexp.MustCompile("\"UserToken\" value=\"(.+?)\"")
 	matches := regex.FindSubmatch(result)
 	c.logger.Info(fmt.Sprintf("matches: %d", len(matches)))
 	for i := range matches {
 		c.logger.Info("matches " + strconv.Itoa(i) + ": " + string(matches[i]))
 	}
-	if len(matches) != 3 {
+	if len(matches) != 2 {
 		return nil, errors.New("failed to parse userToken")
 	}
 	return &Token{
-		UserToken:  string(matches[0]),
-		TempKey:    string(matches[1]),
-		Stbid:      string(matches[2]),
+		UserToken:  string(matches[1]),
+		TempKey:    "",
+		Stbid:      "370007",
 		JSESSIONID: jsessionID,
 	}, nil
 }
