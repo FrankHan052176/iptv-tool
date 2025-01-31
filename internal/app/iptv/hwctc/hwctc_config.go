@@ -7,8 +7,7 @@ import (
 type Config struct {
 	InterfaceName string `json:"interfaceName" yaml:"interfaceName"` // 网络接口的名称。若配置则生成Authenticator时，优先使用该接口对应的IPv4地址，而不使用`ip`字段的值。
 	// 以下信息均可通过抓包获取
-	IP                string `json:"ip" yaml:"ip"`                                                   // 生成Authenticator所需的IP地址。可随便一个地址，或者通过配置`interfaceName`动态获取
-	ChannelProgramAPI string `json:"channelProgramAPI,omitempty" yaml:"channelProgramAPI,omitempty"` // 请求频道节目信息（EPG）的API接口，目前只支持两种：liveplay_30或者gdhdpublic。
+	IP string `json:"ip" yaml:"ip"` // 生成Authenticator所需的IP地址。可随便一个地址，或者通过配置`interfaceName`动态获取
 	// 以下信息均可通过抓包请求ValidAuthenticationHWCTC.jsp的参数拿到
 	UserID           string `json:"userID" yaml:"userID"`
 	Lang             string `json:"lang,omitempty" yaml:"lang,omitempty"`           // 如果没有可以不填

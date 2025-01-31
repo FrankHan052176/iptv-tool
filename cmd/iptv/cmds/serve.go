@@ -25,7 +25,7 @@ type HttpConfig struct {
 func NewServeCLI() *cobra.Command {
 	serveCmd := &cobra.Command{
 		Use:   "serve",
-		Short: "启动HTTP服务，提供直播源、EPG等查询接口。",
+		Short: "启动HTTP服务，提供直播源等查询接口。",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// 读取直播配置
 			if httpConfig.LiveFile != "" {

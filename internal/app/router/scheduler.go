@@ -28,11 +28,6 @@ func Schedule(ctx context.Context, iptvClient iptv.Client, duration time.Duratio
 					logger.Error("Failed to update channel list.", zap.Error(err))
 				}
 
-				// 更新节目单数据
-				if err := updateEPG(ctx, iptvClient); err != nil {
-					logger.Error("Failed to update EPG.", zap.Error(err))
-				}
-
 				logger.Info("The scheduling task has been completed.")
 			}
 		}

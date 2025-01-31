@@ -78,11 +78,6 @@ func initData(ctx context.Context, iptvClient iptv.Client) error {
 	if err := updateChannelsWithRetry(ctx, iptvClient, 3); err != nil {
 		return err
 	}
-
-	// 更新节目单
-	if err := updateEPG(ctx, iptvClient); err != nil {
-		return err
-	}
 	return nil
 }
 

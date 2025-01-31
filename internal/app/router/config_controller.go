@@ -15,7 +15,6 @@ type Live struct {
 	Name    string `json:"name"`              // 配置名称
 	Boot    bool   `json:"boot"`              // 是否自启动
 	Url     string `json:"url"`               // 直播源地址
-	Epg     string `json:"epg,omitempty"`     // 节目地址
 	Logo    string `json:"logo,omitempty"`    // 台标地址
 	Pass    bool   `json:"pass,omitempty"`    // 是否免密码
 	Ua      string `json:"ua,omitempty"`      // 用户代理
