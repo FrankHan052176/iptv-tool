@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -124,9 +125,13 @@ func (c *Client) authLoginHWCTC(ctx context.Context, referer string) (string, er
 	if err != nil {
 		return "", err
 	}
-	regex := regexp.MustCompile("EncryptToken = \"(.+?)\";")
+	regex := regexp.MustCompile("var EncryptToken = \"(.+?)\";")
 	matches := regex.FindSubmatch(result)
-	if len(matches) != 2 {
+	c.logger.Info("EncryptToken cnt:" + strconv.Itoa(len(matches)))
+	for i := range matches {
+		c.logger.Info("EncryptToken " + strconv.Itoa(i) + ": " + string(matches[i]))
+	}
+	if len(matches) != 1 {
 		return "", errors.New("failed to parse EncryptToken")
 	}
 	return string(matches[0]), nil
@@ -231,13 +236,14 @@ func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken stri
 	if err != nil {
 		return nil, err
 	}
-	regex := regexp.MustCompile("(?s)\"UserToken\" value=\"(.+?)\".+?\"tempKey\" value=\"(.*?)\".+?\"stbid\" value=\"(.*?)\"")
+	regex := regexp.MustCompile("(?s)<input type=\"hidden\" name=\"UserToken\" value=\"(.*?)\".*<input type=\"hidden\" name=\"tempKey\" value=\"(.*?)\".*<input type=\"hidden\" name=\"stbid\" value=\"(.*?)\">")
 	matches := regex.FindSubmatch(result)
-	if len(matches) != 3 {
-		return nil, errors.New("failed to parse userToken")
-	}
+	c.logger.Info(fmt.Sprintf("matches: %d", len(matches)))
 	for match := range matches {
 		c.logger.Info(string(matches[match]))
+	}
+	if len(matches) != 3 {
+		return nil, errors.New("failed to parse userToken")
 	}
 	return &Token{
 		UserToken:  string(matches[0]),
