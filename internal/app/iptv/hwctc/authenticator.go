@@ -233,11 +233,12 @@ func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken stri
 	}
 
 	// 解析响应内容
-	result, err := io.ReadAll(resp.Body)
+	respBody := resp.Body
+	result, err := io.ReadAll(respBody)
 	if err != nil {
 		return nil, err
 	}
-	reader, err := gzip.NewReader(resp.Body)
+	reader, err := gzip.NewReader(respBody)
 	if err != nil {
 		return nil, err
 	}
