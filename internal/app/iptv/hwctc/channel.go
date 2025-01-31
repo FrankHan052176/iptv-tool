@@ -1,12 +1,14 @@
 package hwctc
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"io"
 	"iptv/internal/app/iptv"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -69,7 +71,10 @@ func (c *Client) GetAllChannelList(ctx context.Context) ([]iptv.Channel, error) 
 
 	// 解析响应内容
 	result, err := io.ReadAll(resp.Body)
-	c.logger.Info(string(result))
+	if err != nil {
+		return nil, err
+	}
+	err = writeToFile("channel.jsp", string(result))
 	if err != nil {
 		return nil, err
 	}
@@ -146,4 +151,21 @@ func (c *Client) GetAllChannelList(ctx context.Context) ([]iptv.Channel, error) 
 		})
 	}
 	return channels, nil
+}
+
+func writeToFile(filename, content string) error {
+	file, err := os.Create(filename)
+	if err != nil {
+		return fmt.Errorf("创建文件失败: %w", err)
+	}
+	defer file.Close()
+
+	writer := bufio.NewWriter(file)
+	defer writer.Flush()
+
+	if _, err := writer.WriteString(content); err != nil {
+		return fmt.Errorf("写入内容失败: %w", err)
+	}
+
+	return nil
 }
