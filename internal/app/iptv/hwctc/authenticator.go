@@ -1,7 +1,6 @@
 package hwctc
 
 import (
-	"compress/gzip"
 	"context"
 	"errors"
 	"fmt"
@@ -233,18 +232,13 @@ func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken stri
 	}
 
 	// 解析响应内容
-	reader, err := gzip.NewReader(resp.Body)
+	result, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
-	defer reader.Close()
-	bb, err := io.ReadAll(reader) // 读取解压缩后的数据
-	if err != nil {
-		return nil, err
-	}
-	c.logger.Info(string(bb))
+	c.logger.Info(string(result))
 	regex := regexp.MustCompile("\"UserToken\" value=\"(.+?)\"")
-	matches := regex.FindSubmatch(bb)
+	matches := regex.FindSubmatch(result)
 	c.logger.Info(fmt.Sprintf("matches: %d", len(matches)))
 	for i := range matches {
 		c.logger.Info("matches " + strconv.Itoa(i) + ": " + string(matches[i]))
