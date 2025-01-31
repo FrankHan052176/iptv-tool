@@ -214,8 +214,6 @@ func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken stri
 	}
 
 	// 从Cookie中获取JSESSIONID
-	result, err := io.ReadAll(resp.Body)
-	c.logger.Info(string(result))
 	var jsessionID string
 	for _, cookie := range resp.Cookies() {
 		if cookie.Name == "JSESSIONID" {
@@ -229,18 +227,22 @@ func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken stri
 	}
 
 	// 解析响应内容
+	result, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 	regex := regexp.MustCompile("(?s)\"UserToken\" value=\"(.+?)\".+?\"tempKey\" value=\"(.*?)\".+?\"stbid\" value=\"(.*?)\"")
 	matches := regex.FindSubmatch(result)
-	if len(matches) != 4 {
+	if len(matches) != 3 {
 		return nil, errors.New("failed to parse userToken")
 	}
+	for match := range matches {
+		c.logger.Info(string(matches[match]))
+	}
 	return &Token{
-		UserToken:  string(matches[1]),
-		TempKey:    string(matches[2]),
-		Stbid:      string(matches[3]),
+		UserToken:  string(matches[0]),
+		TempKey:    string(matches[1]),
+		Stbid:      string(matches[2]),
 		JSESSIONID: jsessionID,
 	}, nil
 }
