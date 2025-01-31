@@ -233,12 +233,7 @@ func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken stri
 	}
 
 	// 解析响应内容
-	respBody := resp.Body
-	result, err := io.ReadAll(respBody)
-	if err != nil {
-		return nil, err
-	}
-	reader, err := gzip.NewReader(respBody)
+	reader, err := gzip.NewReader(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +244,7 @@ func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken stri
 	}
 	c.logger.Info(string(bb))
 	regex := regexp.MustCompile("\"UserToken\" value=\"(.+?)\"")
-	matches := regex.FindSubmatch(result)
+	matches := regex.FindSubmatch(bb)
 	c.logger.Info(fmt.Sprintf("matches: %d", len(matches)))
 	for i := range matches {
 		c.logger.Info("matches " + strconv.Itoa(i) + ": " + string(matches[i]))
