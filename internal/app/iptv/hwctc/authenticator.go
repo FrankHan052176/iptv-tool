@@ -2,6 +2,7 @@ package hwctc
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"go.uber.org/zap"
@@ -147,12 +148,11 @@ func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken stri
 	}
 
 	// 输入的格式：random + "$" + EncryptToken + "$" + UserID + "$" + STBID + "$" + IP + "$" + MAC + "$" + Reserved + "$" + CTC
-	input := fmt.Sprintf("%d$%s$%s$%s$%s$%s$$CU",
+	input := fmt.Sprintf("%d$%s$%s$%s$%s$%s$$CTC",
 		random, encryptToken, c.config.UserID, c.config.STBID, ipv4Addr, c.config.MAC)
 	// 使用3DES加密生成Authenticator
 	crypto := iptv.NewTripleDESCrypto(c.key)
 	authenticator, err := crypto.ECBEncrypt(input)
-	logger.Info(authenticator)
 	if err != nil {
 		return nil, err
 	}
@@ -177,6 +177,8 @@ func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken stri
 		"SoftwareVersion":  c.config.SoftwareVersion,
 		"VIP":              c.config.Vip,
 	}
+	dataType, _ := json.Marshal(data)
+	c.logger.Info(string(dataType))
 	body := url.Values{}
 	for k, v := range data {
 		body.Add(k, v)
