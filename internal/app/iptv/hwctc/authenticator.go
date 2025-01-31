@@ -5,16 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"go.uber.org/zap"
 	"io"
 	"iptv/internal/app/iptv"
-	"math/rand"
 	"net"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
-	"time"
 )
 
 type Token struct {
@@ -130,9 +127,6 @@ func (c *Client) authLoginHWCTC(ctx context.Context, referer string) (string, er
 
 // validAuthenticationHWCTC 认证第三步，获取UserToken和cookie中的JSESSIONID
 func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken string) (*Token, error) {
-	logger := zap.L()
-	// 生成随机的8位数字
-	random := c.generate8DigitNumber()
 
 	var err error
 	// 获取IPv4地址
@@ -148,8 +142,8 @@ func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken stri
 	}
 
 	// 输入的格式：random + "$" + EncryptToken + "$" + UserID + "$" + STBID + "$" + IP + "$" + MAC + "$" + Reserved + "$" + CTC
-	input := fmt.Sprintf("%d$%s$%s$%s$%s$%s$$CTC",
-		random, encryptToken, c.config.UserID, c.config.STBID, ipv4Addr, c.config.MAC)
+	input := fmt.Sprintf("%s$%s$%s$%s$%s$%s$$CTC",
+		"07944680", encryptToken, c.config.UserID, c.config.STBID, ipv4Addr, c.config.MAC)
 	// 使用3DES加密生成Authenticator
 	crypto := iptv.NewTripleDESCrypto(c.key)
 	authenticator, err := crypto.ECBEncrypt(input)
@@ -209,10 +203,10 @@ func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken stri
 	}
 
 	// 从Cookie中获取JSESSIONID
-	logger.Info("Cookies")
+	c.logger.Info("Cookies")
 	var jsessionID string
 	for _, cookie := range resp.Cookies() {
-		logger.Info(cookie.Raw)
+		c.logger.Info(cookie.Raw)
 		if cookie.Name == "JSESSIONID" {
 			jsessionID = cookie.Value
 			break
@@ -239,16 +233,6 @@ func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken stri
 		Stbid:      string(matches[3]),
 		JSESSIONID: jsessionID,
 	}, nil
-}
-
-// generate8DigitNumber 生成随机8位数字
-func (c *Client) generate8DigitNumber() int {
-	// 设置随机数种子
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	// 生成一个8位数字 (范围：10000000 - 99999999)
-	number := r.Intn(90000000) + 10000000
-
-	return number
 }
 
 // getInterfaceIPv4Addr 获取指定网络接口的IPv4地址
