@@ -1,6 +1,7 @@
 package hwctc
 
 import (
+	"compress/gzip"
 	"context"
 	"errors"
 	"fmt"
@@ -204,7 +205,7 @@ func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken stri
 	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
 	req.Header.Set("X-Requested-With", "com.hisense.iptv")
 	req.Header.Set("Accept-Language", "zh-CN,en-US;q=0.8")
-	req.Header.Set("Accept-Encoding", "gzip, deflate")
+	req.Header.Set("Accept-Encoding", "gzip, deflate") // 注意：客户端声明支持gzip
 	req.Header.Set("Upgrade-Insecure-Requests", "1")
 
 	// 执行请求
@@ -231,13 +232,26 @@ func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken stri
 		return nil, errors.New("failed to find JSESSIONID in response")
 	}
 
-	// 解析响应内容
-	result, err := io.ReadAll(resp.Body)
+	// 处理可能的GZIP压缩
+	var reader io.Reader = resp.Body
+	if strings.Contains(resp.Header.Get("Content-Encoding"), "gzip") {
+		gzReader, err := gzip.NewReader(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create gzip reader: %v", err)
+		}
+		defer gzReader.Close()
+		reader = gzReader
+	}
+
+	// 读取并解析响应内容
+	result, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, err
 	}
 	c.logger.Info(string(result))
-	regex := regexp.MustCompile("\"UserToken\" value=\"(.+?)\"")
+
+	// 匹配UserToken
+	regex := regexp.MustCompile(`"UserToken" value="(.+?)"`)
 	matches := regex.FindSubmatch(result)
 	c.logger.Info(fmt.Sprintf("matches: %d", len(matches)))
 	for i := range matches {
