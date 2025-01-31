@@ -233,6 +233,7 @@ func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken stri
 
 	// 解析响应内容
 	result, err := io.ReadAll(resp.Body)
+	c.logger.Info(string(result))
 	if err != nil {
 		return nil, err
 	}
