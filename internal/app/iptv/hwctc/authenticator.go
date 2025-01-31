@@ -53,7 +53,12 @@ func (c *Client) authenticationURL(ctx context.Context) (string, error) {
 	params.Add("UserID", c.config.UserID)
 	params.Add("Action", "Login")
 	req.URL.RawQuery = params.Encode()
-
+	req.Header.Set("User-Agent", "webkit;Resolution(PAL,720P,1080P)")
+	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+	req.Header.Set("X-Requested-With", "com.hisense.iptv")
+	req.Header.Set("Accept-Language", "zh-CN,en-US;q=0.8")
+	req.Header.Set("Accept-Encoding", "gzip, deflate")
+	req.Header.Set("Upgrade-Insecure-Requests", "1")
 	// 设置请求头
 	c.setCommonHeaders(req)
 
@@ -97,6 +102,12 @@ func (c *Client) authLoginHWCTC(ctx context.Context, referer string) (string, er
 	c.setCommonHeaders(req)
 	req.Header.Set("Referer", referer)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("User-Agent", "webkit;Resolution(PAL,720P,1080P)")
+	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+	req.Header.Set("X-Requested-With", "com.hisense.iptv")
+	req.Header.Set("Accept-Language", "zh-CN,en-US;q=0.8")
+	req.Header.Set("Accept-Encoding", "gzip, deflate")
+	req.Header.Set("Upgrade-Insecure-Requests", "1")
 
 	// 执行请求
 	resp, err := c.httpClient.Do(req)
@@ -190,6 +201,12 @@ func (c *Client) validAuthenticationHWCTC(ctx context.Context, encryptToken stri
 	referer := fmt.Sprintf("http://%s/EPG/jsp/authLoginHWCU.jsp", c.host)
 	req.Header.Set("Referer", referer)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("User-Agent", "webkit;Resolution(PAL,720P,1080P)")
+	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+	req.Header.Set("X-Requested-With", "com.hisense.iptv")
+	req.Header.Set("Accept-Language", "zh-CN,en-US;q=0.8")
+	req.Header.Set("Accept-Encoding", "gzip, deflate")
+	req.Header.Set("Upgrade-Insecure-Requests", "1")
 
 	// 执行请求
 	resp, err := c.httpClient.Do(req)
